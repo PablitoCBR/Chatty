@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Server.Host;
+using Server.Host.Builder.Interfaces;
 
 namespace Server
 {
@@ -6,7 +7,10 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            CreateServerHostBuilder(args).Build().Run();
         }
+
+        static IServerHostBuilder CreateServerHostBuilder(string[] args)
+            => Host.Server.CreateDefaultBuilder<Startup>(args);
     }
 }
