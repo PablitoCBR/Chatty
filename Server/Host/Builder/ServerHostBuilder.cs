@@ -31,6 +31,8 @@ namespace Server.Host.Builder
                 Settings.Port = NetworkPortsHelper.Instance.GetAvaliblePort(Settings.Port);
                 Logger.LogWarning("Host Builder set up new port: {0}", Settings.Port);
             }, Logger);
+
+            return serverHost;
         }
 
         private void VerifyPort()

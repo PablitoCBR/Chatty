@@ -4,9 +4,9 @@ using Server.Host.HostAbstractions.Interfaces;
 
 namespace Server.Host
 {
-    public class ServerHost : AbstractServerHost, IServerHostSetup
+    public class ServerHost : AbstractServerHost
     {
-        public void Run()
+        public override void Run()
         {
             throw new System.NotImplementedException();
         }
