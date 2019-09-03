@@ -6,41 +6,61 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Utils;
 using Server.Host.Builder.Exceptions;
 using Server.Host.Utils;
-using System.Net.Sockets;
+using Server.Domain.Listener.Interfaces;
+using Server.Host.Listener.Interfaces;
 
 namespace Server.Host.Builder
 {
     public class ServerHostBuilder : IServerHostBuilder
     {
-        public IServiceProvider ServiceProvider { get; }
+        private IServiceProvider ServiceProvider { get; }
         private ILogger<IServerHostBuilder> Logger { get; }
-        public BuilderSettings Settings { get; set; }
+        private IListenerFabric ListenerFabric { get; } 
+        public BuilderSettings Settings { get;  set; }
 
-        public ServerHostBuilder(IServiceProvider serviceProvider, ILogger<IServerHostBuilder> logger)
+        public ServerHostBuilder(IServiceProvider serviceProvider, ILogger<IServerHostBuilder> logger, IListenerFabric listenerFabric)
         {
             ServiceProvider = serviceProvider;
             Logger = logger;
+            ListenerFabric = listenerFabric;
         }
 
 
         public IServerHost Build()
         {
             IServerHostSetup serverHost = ServiceProvider.GetService<IServerHostSetup>();
-            Common.TryCatchAction<ServerHostBuilderPortException>(VerifyPort, ex => {
-                Logger.LogWarning("Host Builder will search for first avilable port");
-                Settings.Port = NetworkPortsHelper.Instance.GetAvaliblePort(Settings.Port);
-                Logger.LogWarning("Host Builder set up new port: {0}", Settings.Port);
-            }, Logger);
-
+            BuildListeners(serverHost);
             return serverHost;
         }
 
-        private void VerifyPort()
+        private void BuildListeners(IServerHostSetup serverHost)
         {
-            if (!NetworkPortsHelper.Instance.IsTcpPortAvailable(Settings.Port))
-                throw new ServerHostBuilderPortException("Port is not available!", Settings.Port, ProtocolType.Tcp);
-            if(!NetworkPortsHelper.Instance.IsTcpPortAvailable(Settings.Port))
-                throw new ServerHostBuilderPortException("Port is not available!", Settings.Port, ProtocolType.Udp);
+            IListener tcpListener = Common.TryCatchFunc<IListener, ServerHostBuilderPortException>(
+                () => ListenerFabric.CreateTCP(Settings.Port, Settings.TcpPendingConnectionsQueueLength, Settings.TcpBufferSize, Settings.EndOfStreamMarker),
+                HandlePortException, Logger);
+
+            IListener udpListner = Common.TryCatchFunc<IListener, ServerHostBuilderPortException>(
+                () => ListenerFabric.CreateUDP(Settings.Port, Settings.UdpBufferSize), 
+                HandlePortException, Logger);
+
+            serverHost.SetListner(tcpListener);
+            serverHost.SetListner(udpListner);
+        }
+
+        private IListener HandlePortException(ServerHostBuilderPortException exception)
+        {
+            Logger.LogError(exception.ToString());
+            SetFirstAvailablePort();
+            if (exception.ProtocolType == System.Net.Sockets.ProtocolType.Tcp)
+                return ListenerFabric.CreateTCP(Settings.Port, Settings.TcpPendingConnectionsQueueLength, Settings.TcpBufferSize, Settings.EndOfStreamMarker);
+            else return ListenerFabric.CreateUDP(Settings.Port, Settings.UdpBufferSize);
+        }
+
+        private void SetFirstAvailablePort()
+        {
+            Logger.LogWarning("Host Builder will search for first avilable port");
+            Settings.Port = NetworkPortsHelper.Instance.GetAvaliblePort(Settings.Port);
+            Logger.LogWarning("Host Builder sets up new port: {0}", Settings.Port);
         }
     }
 }
