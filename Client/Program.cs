@@ -39,8 +39,12 @@ namespace Client
 
                     // Creation of messagge that 
                     // we will send to Server 
-                    byte[] messageSent = Encoding.ASCII.GetBytes("Test Client<EOF>");
-                    int byteSent = sender.Send(messageSent);
+                    byte[] messageSent = Encoding.ASCII.GetBytes("Test Client");
+                    while(true)
+                    {
+
+                        int byteSent = sender.Send(messageSent);
+                    }
 
                     // Data buffer 
                     byte[] messageReceived = new byte[1024];

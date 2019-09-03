@@ -45,34 +45,67 @@ namespace Server.Host.Listener
             }
         }
 
-        private Task HandleMessageAsync(string receivedData, Socket clientSocket)
+        private Task HandleMessageAsync(string message, Socket clientSocket)
         {
-            string message = receivedData.Substring(0, receivedData.IndexOf(EndOfStreamMarker));
             Logger.LogInformation("Recived message: {0}", message);
-            Thread.Sleep(5000);
             clientSocket.Send(Encoding.ASCII.GetBytes(message));
-            clientSocket.Shutdown(SocketShutdown.Both);
-            clientSocket.Close();
             return Task.CompletedTask;
         }
 
         private async Task HandleIncomingDataAsync(Socket clientSocket)
         {
-            string messageReceived = await ReceiveMessageAsync(clientSocket).ConfigureAwait(false);
-            await HandleMessageAsync(messageReceived, clientSocket);
+            try
+            {
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(TimeSpan.FromSeconds(5));
+                string messageReceived = await ReceiveDataAsync(clientSocket, cts.Token).ConfigureAwait(false);
+                if(!String.IsNullOrEmpty(messageReceived))
+                    await HandleMessageAsync(messageReceived, clientSocket).ConfigureAwait(false);
+            }
+            catch(AggregateException aggregateException)
+            {
+                foreach (Exception ex in aggregateException.InnerExceptions)
+                    Logger.LogError(ex, "Exception occured while receiving data from {0}", ((IPEndPoint)clientSocket.RemoteEndPoint).Address.ToString());
+            }
+            finally
+            {
+                CloseSocket(clientSocket);
+            }
         }
 
-        private async Task<string> ReceiveMessageAsync(Socket clientSocket)
+        private async Task<string> ReceiveDataAsync(Socket clientSocket, CancellationToken cancellationToken)
         {
             ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[BufferSize]);
             string message = String.Empty;
             do
             {
-                await clientSocket.ReceiveAsync(buffer, SocketFlags.None);
-                message += Encoding.ASCII.GetString(buffer);
+                try
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        Logger.LogWarning("TCP connection canceled after 5s timeout {0}Remote IPv6: {1}", Environment.NewLine, ((IPEndPoint)clientSocket.RemoteEndPoint).Address.ToString());
+                        return await Task.FromResult(String.Empty);
+                    }
+                    await clientSocket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
+                    message += Encoding.ASCII.GetString(buffer);
+                }
+                catch(AggregateException ex)
+                {
+                    Logger.LogError("Data receiving from {0} has to stopped due to exception", ((IPEndPoint)clientSocket?.RemoteEndPoint)?.Address.ToString());
+                    throw ex;
+                }
             } while (!message.Contains(EndOfStreamMarker));
+            
+            return message.Substring(0, message.IndexOf(EndOfStreamMarker));
+        }
 
-            return message;
+        private void CloseSocket(Socket socket)
+        {
+            Common.TryCatchAction(
+                () => socket.Shutdown(SocketShutdown.Both),
+                Logger, $"Error occured while shuting down socket to {((IPEndPoint)socket?.RemoteEndPoint)?.Address.ToString() ?? "UNDEFINED"}"
+                );
+            socket.Close();
         }
     }
 }
