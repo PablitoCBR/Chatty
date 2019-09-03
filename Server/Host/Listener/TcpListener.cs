@@ -45,6 +45,8 @@ namespace Server.Host.Listener
             }
         }
 
+
+        /// TEMP METHOD !!! Will be replaced by class handling recived data (extracting recepient and passing message)
         private Task HandleMessageAsync(string message, Socket clientSocket)
         {
             Logger.LogInformation("Recived message: {0}", message);
@@ -69,7 +71,7 @@ namespace Server.Host.Listener
             }
             finally
             {
-                CloseSocket(clientSocket);
+                await CloseSocketAsync(clientSocket).ConfigureAwait(false);
             }
         }
 
@@ -99,13 +101,16 @@ namespace Server.Host.Listener
             return message.Substring(0, message.IndexOf(EndOfStreamMarker));
         }
 
-        private void CloseSocket(Socket socket)
+        private async Task CloseSocketAsync(Socket socket)
         {
-            Common.TryCatchAction(
-                () => socket.Shutdown(SocketShutdown.Both),
-                Logger, $"Error occured while shuting down socket to {((IPEndPoint)socket?.RemoteEndPoint)?.Address.ToString() ?? "UNDEFINED"}"
-                );
-            socket.Close();
+            await Task.Run(() =>
+            {
+                Common.TryCatchAction(
+                    () => socket.Shutdown(SocketShutdown.Both),
+                    Logger, $"Error occured while shuting down socket to {((IPEndPoint)socket?.RemoteEndPoint)?.Address.ToString() ?? "UNDEFINED"}"
+                    );
+                socket.Close();
+            }).ConfigureAwait(false);
         }
     }
 }
