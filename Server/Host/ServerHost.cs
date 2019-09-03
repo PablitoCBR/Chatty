@@ -22,11 +22,5 @@ namespace Server.Host
                 _udpListenerThread.Start();
             }
         }
-        //public override void Run()
-        //{
-        //    Task udp = UdpListner.ListenAsync();
-        //    Task tcp = TcpListner.ListenAsync();
-        //    Task.WhenAll(udp, tcp);
-        //}
     }
 }
