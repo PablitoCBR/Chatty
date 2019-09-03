@@ -1,5 +1,6 @@
 ﻿using Server.Host.HostAbstarctions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Server.Host
 {
@@ -21,5 +22,11 @@ namespace Server.Host
                 _udpListenerThread.Start();
             }
         }
+        //public override void Run()
+        //{
+        //    Task udp = UdpListner.ListenAsync();
+        //    Task tcp = TcpListner.ListenAsync();
+        //    Task.WhenAll(udp, tcp);
+        //}
     }
 }

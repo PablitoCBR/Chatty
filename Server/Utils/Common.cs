@@ -5,7 +5,10 @@ namespace Server.Utils
 {
     public static class Common
     {
-        public static bool TryCatchAction<TException>(Action action, Action<TException> excpetionHandler, ILogger logger = null) where TException : Exception
+        public static bool TryCatchAction(Action action, ILogger logger, string exceptionMessage)
+            => TryCatchFunc<bool>(() => { action.Invoke(); return true; }, logger, exceptionMessage);
+
+        public static bool TryCatchAction<TException>(Action action, Action<TException> excpetionHandler = null, ILogger logger = null) where TException : Exception
            => TryCatchFunc<bool, TException>(() =>
            {
                action.Invoke();
@@ -14,10 +17,22 @@ namespace Server.Utils
            (ex) =>
            {
                logger?.LogError(ex.Message);
-               excpetionHandler(ex);
+               excpetionHandler?.Invoke(ex);
                return false;
            });
 
+        public static TResult TryCatchFunc<TResult>(Func<TResult> func, ILogger logger, string exceptionMessage)
+        {
+            try
+            {
+                return func.Invoke();
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, exceptionMessage);
+                return default(TResult);
+            }
+        }
 
         public static TResult TryCatchFunc<TResult, TException>(Func<TResult> func, Func<TException, TResult> exceptionHandler, ILogger logger = null) where TException : Exception
         {

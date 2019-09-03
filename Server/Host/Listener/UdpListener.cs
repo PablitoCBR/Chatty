@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Threading.Tasks;
 using Server.Domain.Listener.Interfaces;
 
 namespace Server.Host.Listener
@@ -7,7 +8,7 @@ namespace Server.Host.Listener
     {
         public ProtocolType ProtocolType { get => ProtocolType.Udp;  }
 
-        public void Listen()
+        public async void Listen()
         {
             throw new System.NotImplementedException();
         }

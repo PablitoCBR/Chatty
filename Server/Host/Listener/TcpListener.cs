@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Server.Domain.Listener.Interfaces;
+using Server.Utils;
 
 namespace Server.Host.Listener
 {
@@ -13,6 +14,7 @@ namespace Server.Host.Listener
     {
         private ILogger Logger { get; }
         private Socket Listener { get; }
+
         private IPEndPoint IPEndPoint { get; }
         private uint BufferSize { get; }
         private int ConnectionsQueueLength { get; }
@@ -39,27 +41,38 @@ namespace Server.Host.Listener
             while(true)
             {
                 Socket clientSocket = Listener.Accept();
-                byte[] buffer = new byte[BufferSize];
-                string message = String.Empty;
-
-                do
-                {
-                    clientSocket.Receive(buffer);
-                    message += Encoding.ASCII.GetString(buffer);
-                } while (!message.Contains(EndOfStreamMarker));
-                Task.Run(() => HandleMessage(message, clientSocket));
+                HandleIncomingDataAsync(clientSocket).ConfigureAwait(false);
             }
         }
 
-        private Task HandleMessage(string receivedData, Socket clientSocket)
+        private Task HandleMessageAsync(string receivedData, Socket clientSocket)
         {
             string message = receivedData.Substring(0, receivedData.IndexOf(EndOfStreamMarker));
             Logger.LogInformation("Recived message: {0}", message);
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
             clientSocket.Send(Encoding.ASCII.GetBytes(message));
             clientSocket.Shutdown(SocketShutdown.Both);
             clientSocket.Close();
             return Task.CompletedTask;
+        }
+
+        private async Task HandleIncomingDataAsync(Socket clientSocket)
+        {
+            string messageReceived = await ReceiveMessageAsync(clientSocket).ConfigureAwait(false);
+            await HandleMessageAsync(messageReceived, clientSocket);
+        }
+
+        private async Task<string> ReceiveMessageAsync(Socket clientSocket)
+        {
+            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[BufferSize]);
+            string message = String.Empty;
+            do
+            {
+                await clientSocket.ReceiveAsync(buffer, SocketFlags.None);
+                message += Encoding.ASCII.GetString(buffer);
+            } while (!message.Contains(EndOfStreamMarker));
+
+            return message;
         }
     }
 }
