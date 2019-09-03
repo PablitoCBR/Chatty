@@ -5,6 +5,8 @@ using Server.Host;
 using Server.Host.Builder;
 using Server.Host.Builder.Interfaces;
 using Server.Host.HostAbstractions.Interfaces;
+using Server.Host.Listener;
+using Server.Host.Listener.Interfaces;
 
 namespace Server
 {
@@ -14,7 +16,7 @@ namespace Server
 
         public override void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddSingleton<IListenerFabric, ListenerFabric>();
             services.AddScoped<IServerHostBuilder, ServerHostBuilder>();
             services.AddTransient<IServerHostSetup, ServerHost>();
 
