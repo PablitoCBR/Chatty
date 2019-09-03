@@ -5,7 +5,7 @@ namespace Server.Host.Builder.Exceptions
 {
     public class ServerHostBuilderPortException : AbstractServerHostBuilderException
     {
-        public int Port { get; }
+        public uint Port { get; }
         public ProtocolType ProtocolType { get; }
 
         public ServerHostBuilderPortException(string message) : base(message)
@@ -13,7 +13,7 @@ namespace Server.Host.Builder.Exceptions
             ProtocolType = ProtocolType.Unspecified;
         }
 
-        public ServerHostBuilderPortException(string message, int port, ProtocolType protocolType) : this(message)
+        public ServerHostBuilderPortException(string message, uint port, ProtocolType protocolType) : this(message)
         {
             Port = port;
             ProtocolType = protocolType;
