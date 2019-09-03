@@ -5,16 +5,35 @@ namespace Server.Utils
 {
     public static class Common
     {
-        public static void TryCatchAction<TException>(Action action, Action<TException> excpetionHandler, ILogger logger = null) where TException : Exception
+        public static bool TryCatchAction<TException>(Action action, Action<TException> excpetionHandler, ILogger logger = null) where TException : Exception
+           => TryCatchFunc<bool, TException>(() =>
+           {
+               action.Invoke();
+               return true;
+           },
+           (ex) =>
+           {
+               logger?.LogError(ex.Message);
+               excpetionHandler(ex);
+               return false;
+           });
+
+
+        public static TResult TryCatchFunc<TResult, TException>(Func<TResult> func, Func<TException, TResult> exceptionHandler, ILogger logger = null) where TException : Exception
         {
             try
             {
-                action.Invoke();
+                return func.Invoke();
             }
-            catch(TException ex)
+            catch (TException ex)
             {
-                if (logger != null) logger.LogError(ex.ToString());
-                excpetionHandler.Invoke(ex);
+                logger?.LogError(ex.Message);
+                return exceptionHandler.Invoke(ex);
+            }
+            catch (Exception unhadledException)
+            {
+                logger?.LogError("Unhandled exception occured in TryCatchFunc: {0}{1}", Environment.NewLine, unhadledException.ToString());
+                return default(TResult);
             }
         }
     }
