@@ -16,7 +16,7 @@ namespace Server.Host.Builder.Exceptions
 
         protected string HostNameAndIPv6ForLogging
         {
-            get => String.Format("Host Name: {0}{1} IPv6: {2}{3}",
+            get => String.Format("Host Name: {0}{1}IPv6: {2}{3}",
                             HostName,
                             Environment.NewLine,
                             IPAddress.ToString(),

@@ -21,7 +21,7 @@ namespace Server.Host.Builder.Exceptions
 
         public override string ToString()
         {
-            string str = String.Format("Server Host Builder Exception. {0}", Environment.NewLine);
+            string str = String.Format("Server Host Builder Port Exception. {0}", Environment.NewLine);
             str += String.Format("Port: {0}{1}", (Port != 0) ? Port.ToString() : "Unspecified", Environment.NewLine);
 
             string protocolType = String.Empty;
