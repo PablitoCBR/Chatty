@@ -7,8 +7,8 @@ namespace Server.Host.HostAbstarctions
 {
     public abstract class AbstractServerHost : IServerHostSetup
     {
-        private IListener TcpListner { get; set; }
-        private IListener UdpListner { get; set; }
+        protected IListener TcpListner { get; private set; }
+        protected IListener UdpListner { get; private set; }
 
         public virtual void Run()
         {

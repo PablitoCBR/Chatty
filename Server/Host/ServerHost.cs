@@ -1,14 +1,25 @@
 ﻿using Server.Host.HostAbstarctions;
-using Server.Host.HostAbstractions.Interfaces;
-
+using System.Threading;
 
 namespace Server.Host
 {
     public class ServerHost : AbstractServerHost
     {
+        private Thread _tcpListenerThread;
+        private Thread _udpListenerThread;
+
         public override void Run()
         {
-            throw new System.NotImplementedException();
+            if (_tcpListenerThread == null)
+            {
+                _tcpListenerThread = new Thread(TcpListner.Listen);
+                _tcpListenerThread.Start();
+            }
+            if (_udpListenerThread == null)
+            {
+                _udpListenerThread = new Thread(UdpListner.Listen);
+                _udpListenerThread.Start();
+            }
         }
     }
 }

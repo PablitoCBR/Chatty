@@ -29,6 +29,7 @@ namespace Server.Host
             IServiceProvider serviceProvider = services.BuildServiceProvider();
             IServerHostBuilder builder = services.BuildServiceProvider().GetService<IServerHostBuilder>();
             builder.Settings = GetBuilderSettings(args, serviceProvider.GetService<IConfiguration>(), serviceProvider.GetService<ILogger<BuilderSettings>>());
+
             serviceProvider.GetService<ILogger<BuilderSettings>>().LogInformation("BUILDER SETTINGS {0}{1}", Environment.NewLine, builder.Settings.ToString());
             return builder;
         }
@@ -45,7 +46,16 @@ namespace Server.Host
                     logger.LogInformation("Provided parameters parsed successfully and will be used as options for ServerHostBuilder");
                     if (parsed.Port > 0) settings.Port = parsed.Port;
                     if (parsed.TcpPendingConnectionsQueueLength > 0) settings.TcpPendingConnectionsQueueLength = parsed.TcpPendingConnectionsQueueLength;
-                    if (parsed.UdpPendingConnectionsQueueLength > 0) settings.UdpPendingConnectionsQueueLength = parsed.UdpPendingConnectionsQueueLength;
+                    if (parsed.TcpBufferSize > 0)
+                    {
+                        if (parsed.TcpBufferSize >= 8) settings.TcpBufferSize = parsed.TcpBufferSize;
+                        else logger.LogWarning("Tcp buffer size cannot be less than 8 bytes!");
+                    }
+                    if(parsed.UdpBufferSize > 0)
+                    {
+                        if (parsed.UdpBufferSize >= 8) settings.UdpBufferSize = parsed.UdpBufferSize;
+                        else logger.LogWarning("Udp buffer size cannot be less than 8 bytes!");
+                    }
                     if (!String.IsNullOrEmpty(parsed.EndOfStreamMarker)) settings.EndOfStreamMarker = parsed.EndOfStreamMarker;
                 })
                 .WithNotParsed(errors =>
@@ -63,8 +73,9 @@ namespace Server.Host
             {
                 Port = HostBuilderConfigurationSection.GetValue<ushort>(BuilderSettings.Options.Port),
                 EndOfStreamMarker = HostBuilderConfigurationSection.GetValue<string>(BuilderSettings.Options.EndOfStreamMarker),
-                TcpPendingConnectionsQueueLength = HostBuilderConfigurationSection.GetValue<uint>(BuilderSettings.Options.TcpPendingConnectionsQueueLength),
-                UdpPendingConnectionsQueueLength = HostBuilderConfigurationSection.GetValue<uint>(BuilderSettings.Options.UdpPendingConnectionsQueueLength),
+                TcpPendingConnectionsQueueLength = HostBuilderConfigurationSection.GetValue<int>(BuilderSettings.Options.TcpPendingConnectionsQueueLength),
+                TcpBufferSize = HostBuilderConfigurationSection.GetValue<uint>(BuilderSettings.Options.TcpBufferSize),
+                UdpBufferSize = HostBuilderConfigurationSection.GetValue<uint>(BuilderSettings.Options.UdpBufferSize),
                 HostName = Dns.GetHostName(),
                 IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0]
             };
