@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -39,12 +42,11 @@ namespace Client
 
                     // Creation of messagge that 
                     // we will send to Server 
-                    byte[] messageSent = Encoding.ASCII.GetBytes("Test Client");
-                    while(true)
-                    {
+                    string msg = File.ReadAllText("msgTest.txt");
 
-                        int byteSent = sender.Send(messageSent);
-                    }
+                    byte[] messageSent = Encoding.ASCII.GetBytes($"{msg}<EOF>");
+
+                    int byteSent = sender.Send(messageSent);
 
                     // Data buffer 
                     byte[] messageReceived = new byte[1024];
@@ -54,6 +56,9 @@ namespace Client
                     // method returns number of bytes 
                     // received, that we'll use to  
                     // convert them to string 
+           
+                   
+
                     int byteRecv = sender.Receive(messageReceived);
                     Console.WriteLine("Message from Server -> {0}",
                           Encoding.ASCII.GetString(messageReceived,
