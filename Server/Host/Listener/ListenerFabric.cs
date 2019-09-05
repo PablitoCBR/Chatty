@@ -22,7 +22,7 @@ namespace Server.Host.Listener
         }
 
         /// <exception cref="ServerHostBuilderPortException">Exception is throw if port is unavailable</exception>
-        public IListener CreateTCP(ushort port, int pendingConnectionQueue, uint bufferSize, string endOfStreamMarker)
+        public IListener CreateTCP(ushort port, int pendingConnectionQueue, int bufferSize, string endOfStreamMarker)
         {
             if (!NetworkPortsHelper.Instance.IsTcpPortAvailable(port))
                 throw new ServerHostBuilderPortException("Port is not available!", port, ProtocolType.Tcp);
@@ -31,7 +31,7 @@ namespace Server.Host.Listener
         }
 
         /// <exception cref="ServerHostBuilderPortException">Exception is throw if port is unavailable</exception>
-        public IListener CreateUDP(ushort port, uint bufferSize)
+        public IListener CreateUDP(ushort port, int bufferSize)
         {
             if (!NetworkPortsHelper.Instance.IsUdpPortAvailable(port))
                 throw new ServerHostBuilderPortException("Port is not available!", port, ProtocolType.Udp);
