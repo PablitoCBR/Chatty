@@ -74,8 +74,8 @@ namespace Server.Host
                 Port = HostBuilderConfigurationSection.GetValue<ushort>(BuilderSettings.Options.Port),
                 EndOfStreamMarker = HostBuilderConfigurationSection.GetValue<string>(BuilderSettings.Options.EndOfStreamMarker),
                 TcpPendingConnectionsQueueLength = HostBuilderConfigurationSection.GetValue<int>(BuilderSettings.Options.TcpPendingConnectionsQueueLength),
-                TcpBufferSize = HostBuilderConfigurationSection.GetValue<uint>(BuilderSettings.Options.TcpBufferSize),
-                UdpBufferSize = HostBuilderConfigurationSection.GetValue<uint>(BuilderSettings.Options.UdpBufferSize),
+                TcpBufferSize = HostBuilderConfigurationSection.GetValue<int>(BuilderSettings.Options.TcpBufferSize),
+                UdpBufferSize = HostBuilderConfigurationSection.GetValue<int>(BuilderSettings.Options.UdpBufferSize),
                 HostName = Dns.GetHostName(),
                 IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0]
             };

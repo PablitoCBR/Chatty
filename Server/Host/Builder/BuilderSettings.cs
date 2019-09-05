@@ -15,11 +15,11 @@ namespace Server.Host.Builder
         [Option('t', "TcpPendingConnectionsQueueLength", Required = false, HelpText = "Set max length of pending TCP connections queue", ResourceType = typeof(int))]
         public int TcpPendingConnectionsQueueLength { get; set; }
 
-        [Option("TcpBufferSize", Required = false, HelpText = "TCP port buffer size (bytes). Min value is 8!", ResourceType = typeof(uint))]
-        public uint TcpBufferSize { get; set; }
+        [Option("TcpBufferSize", Required = false, HelpText = "TCP port buffer size (bytes). Min value is 8!", ResourceType = typeof(int))]
+        public int TcpBufferSize { get; set; }
 
-        [Option("UdpBufferSize", Required = false, HelpText = "UDP port buffer size (bytes). Min value is 8!", ResourceType = typeof(uint))]
-        public uint UdpBufferSize { get; set; }
+        [Option("UdpBufferSize", Required = false, HelpText = "UDP port buffer size (bytes). Min value is 8!", ResourceType = typeof(int))]
+        public int UdpBufferSize { get; set; }
 
         public string HostName { get; set; }
         public IPAddress IpAddress { get; set; }
